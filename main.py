@@ -68,8 +68,7 @@ def callback():
 def success():
     return '', 204
 
-
-if __name__ == "__main__":
+def cloud_run():
     run_config = {}
     if not ssl_enabled:
         # allows us to use a plain HTTP callback
@@ -86,3 +85,8 @@ if __name__ == "__main__":
             debug=True,
             **run_config
             )
+
+
+
+if __name__ == "__main__":
+    cloud_run()
