@@ -64,6 +64,9 @@ def success():
 
 
 def cloud_run(request):
+    if not os.environ.get('FUNCTION_ENABLED', 0):
+        abort(404)
+
     if request.path == '/':
         return index()
     elif request.path == '/auth':
