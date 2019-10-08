@@ -1,13 +1,11 @@
 from requests_oauthlib import OAuth2Session
-from flask import Flask, request, redirect
+from flask import request, redirect, abort
 import json
 import os
-from os.path import join, dirname
 from dotenv import load_dotenv
 
-app = Flask(__name__)
 
-load_dotenv(join(dirname(__file__), '.env'))
+load_dotenv()
 client_id = os.environ.get("OAUTH_CLIENT_ID")
 client_secret = os.environ.get("OAUTH_CLIENT_SECRET")
 authorization_base_url = 'https://github.com/login/oauth/authorize'
@@ -19,13 +17,11 @@ scope = os.environ.get('SCOPES', 'repo,user')
 ssl_enabled = os.environ.get('SSL_ENABLED', '0') == '1'
 
 
-@app.route("/")
 def index():
     """ Show a log in with github link """
     return 'Hello<br><a href="/auth">Log in with Github</a>'
 
 
-@app.route("/auth")
 def auth():
     """ We clicked login now redirect to github auth """
     github = OAuth2Session(client_id, scope=scope)
@@ -33,8 +29,7 @@ def auth():
     return redirect(authorization_url)
 
 
-@app.route("/callback", methods=["GET"])
-def callback():
+def callback(request):
     """ retrieve access token """
     state = request.args.get('state', '')
     try:
@@ -64,11 +59,35 @@ def callback():
     </script></body></html>"""
 
 
-@app.route("/success", methods=["GET"])
 def success():
     return '', 204
 
-def cloud_run():
+
+def cloud_run(request):
+    if request.path == '/':
+        return index()
+    elif request.path == '/auth':
+        return auth()
+    elif request.path == '/callback' and request.method == 'GET':
+        return callback(request)
+    elif request.path == '/success' and request.method == 'GET':
+        return success()
+    else:
+        return abort(404)
+
+
+if __name__ == "__main__":
+    # Flask should only run locally, as function is expected to be deployed in Google Cloud Function environment
+    from flask import Flask, request
+    app = Flask(__name__)
+
+    @app.route('/')
+    @app.route('/auth')
+    @app.route('/callback', methods=['GET'])
+    @app.route('/success', methods=['GET'])
+    def main_index():
+        return cloud_run(request)
+    
     run_config = {}
     if not ssl_enabled:
         # allows us to use a plain HTTP callback
@@ -85,8 +104,3 @@ def cloud_run():
             debug=True,
             **run_config
             )
-
-
-
-if __name__ == "__main__":
-    cloud_run()
