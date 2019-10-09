@@ -2,6 +2,7 @@ from requests_oauthlib import OAuth2Session
 from flask import request, redirect, abort
 import json
 import os
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 
@@ -31,12 +32,11 @@ def auth():
 
 def callback(request):
     """ retrieve access token """
-    redirect_url = os.environ.get('REDIRECT_URL', request.url)
     state = request.args.get('state', '')
+    authorization_response = urlparse(request.url)._replace(scheme='https').geturl()
     try:
         github = OAuth2Session(client_id, state=state, scope=scope)
-        print(request.url)
-        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=redirect_url)
+        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=authorization_response)
         content = json.dumps({'token': token.get('access_token', ''), 'provider': 'github'})
         message = 'success'
     except BaseException as e:
