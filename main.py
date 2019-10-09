@@ -34,6 +34,7 @@ def callback(request):
     state = request.args.get('state', '')
     try:
         github = OAuth2Session(client_id, state=state, scope=scope)
+        print(request.url)
         token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=request.url)
         content = json.dumps({'token': token.get('access_token', ''), 'provider': 'github'})
         message = 'success'
