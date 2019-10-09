@@ -18,9 +18,9 @@ scope = os.environ.get('SCOPES', 'repo,user')
 ssl_enabled = os.environ.get('SSL_ENABLED', '0') == '1'
 
 
-def index():
+def index(request):
     """ Show a log in with github link """
-    return 'Hello<br><a href="/auth">Log in with Github</a>'
+    return f'Hello<br><a href="{request.path}/auth">Log in with Github</a>'
 
 
 def auth():
@@ -71,7 +71,7 @@ def cloud_run(request):
         return abort(404)
 
     if request.path == '/':
-        return index()
+        return index(request)
     elif request.path == '/auth':
         return auth()
     elif request.path == '/callback' and request.method == 'GET':
