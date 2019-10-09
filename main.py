@@ -20,6 +20,7 @@ ssl_enabled = os.environ.get('SSL_ENABLED', '0') == '1'
 
 def index(request):
     """ Show a log in with github link """
+    print([request.path, request.full_path, request.script_root, request.base_url, request.url, request.url_root])
     return f'Hello<br><a href="{request.url_root}auth">Log in with Github</a>'
 
 
