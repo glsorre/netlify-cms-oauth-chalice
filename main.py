@@ -31,11 +31,12 @@ def auth():
 
 def callback(request):
     """ retrieve access token """
+    redirect_url = os.environ.get('REDIRECT_URL', request.url)
     state = request.args.get('state', '')
     try:
         github = OAuth2Session(client_id, state=state, scope=scope)
         print(request.url)
-        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=request.url)
+        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=redirect_url)
         content = json.dumps({'token': token.get('access_token', ''), 'provider': 'github'})
         message = 'success'
     except BaseException as e:
