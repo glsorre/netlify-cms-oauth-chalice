@@ -14,7 +14,7 @@ token_host = os.environ.get('GIT_HOSTNAME', 'https://github.com')
 token_path = os.environ.get('OAUTH_TOKEN_PATH', '/login/oauth/access_token')
 authorize_path = os.environ.get('OAUTH_AUTHORIZE_PATH', '/login/oauth/authorize')
 token_url = '{token_host}{token_path}'.format(token_host=token_host, token_path=token_path)
-scope = os.environ.get('SCOPES', 'repo,user')
+scope = os.environ.get('SCOPES', 'public_repo,read:user')
 ssl_enabled = os.environ.get('SSL_ENABLED', '0') == '1'
 
 
