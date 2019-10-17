@@ -5,6 +5,8 @@ import os
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 
+from state_management import create_state, validate_state
+
 
 load_dotenv()
 client_id = os.environ.get("OAUTH_CLIENT_ID")
@@ -25,16 +27,24 @@ def index(request):
 
 
 def auth():
-    """ We clicked login now redirect to github auth """
+    # Generates Authorization URL for Github, including a state for CSRF protection
+    state = create_state()
     github = OAuth2Session(client_id, scope=scope)
-    authorization_url, state = github.authorization_url(authorization_base_url)
-    return redirect(authorization_url)
+    authorization_url, server_state = github.authorization_url(authorization_base_url, state=state)
+    return redirect(authorization_url) if state == server_state else abort(403)
 
 
 def callback(request):
-    """ retrieve access token """
-    state = request.args.get('state', '')
+    # Check the state to protect against CSRF
+    state = request.args.get('state', 'No_state')
+    if not validate_state(state):
+        # This request may not have been started by us!
+        return abort(403)
+    
+    # Ensure the redirect url is using TLS/SSL
     authorization_response = urlparse(request.url)._replace(scheme='https').geturl()
+
+    # Exchange the Authorization Code for a Token
     try:
         github = OAuth2Session(client_id, state=state, scope=scope)
         token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=authorization_response)
@@ -82,32 +92,3 @@ def cloud_run(request):
     else:
         return abort(404)
 
-
-if __name__ == "__main__":
-    # Flask should only run locally, as function is expected to be deployed in Google Cloud Function environment
-    from flask import Flask, request
-    app = Flask(__name__)
-
-    @app.route('/')
-    @app.route('/auth')
-    @app.route('/callback', methods=['GET'])
-    @app.route('/success', methods=['GET'])
-    def main_index():
-        return cloud_run(request)
-    
-    run_config = {}
-    if not ssl_enabled:
-        # allows us to use a plain HTTP callback
-        os.environ['DEBUG'] = "1"
-        # If your server is not parametrized to allow HTTPS set this
-        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    else:
-        run_config = {'ssl_context': 'adhoc'}
-    app.secret_key = os.urandom(24)
-
-    app.run(
-            host=os.environ.get('RUN_HOST', '127.0.0.1'),
-            port=int(os.environ.get('RUN_PORT', 5000)),
-            debug=True,
-            **run_config
-            )
