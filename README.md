@@ -48,14 +48,15 @@ Take note of the *Client ID* and *Client Secret* in a secure place.
 Configuration is performed with environment variables, set during the Cloud Function's deployment or loaded from a .env file. It's recommended to only use a .env file for a local development environment to avoid exposing sensitive configuration variables in a repository.
 
 **List of Environment Variables**
-| Name                     | Description                                                                                                                              | Example Value                                                     |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| OAUTH_CLIENT_ID          | Provided by GitHub upon registering the Function as an OAuth App.                                                                        | f432a9casdff1e4b79c57                                             |
-| OAUTH_CLIENT_SECRET      | ~*Sensitive*~ Provided by GitHub upon registering the Function as an OAuth App. Should be considered equally sensitive as your password. | c0c6k8ew98m0kq4p85tf4z8f84o9w0h360cbqst6                          |
-| FUNCTION_ENABLED         | `Boolean` Toggle for whether the function is actively enabled. Allows the Cloud Function to be disabled while still deployed.            | 1                                                                 |
-| REDIRECT_URL             | Authorization Callback URL provided during the GitHub OAuth App registration, i.e., <*Function Endpoint URL*>`/callback`                 | https://`project-url`.cloudfunctions.net/`function-name`/callback |
-| STATE_STORAGE_COLLECTION | [*Optional*] Path to the Firestore Collection designated for temporary state storage (see below).                                        | `collection-name`/oauth_state_storage/states                      |
-| SSL_ENABLED              | [*Local Only*] `Boolean` Toggles SSL during OAuth Authentication Flow. Should only be disabled during local development testing.         | 1                                                                 |
+
+|Name|Description|Example Value|
+|----|----|----|
+|OAUTH_CLIENT_ID|Provided by GitHub upon registering the Function as an OAuth App.|f432a9casdff1e4b79c57|
+|OAUTH_CLIENT_SECRET|~*Sensitive*~ Provided by GitHub upon registering the Function as an OAuth App. Should be considered equally sensitive as your password.|c0c6k8ew98m0kq4p85tf4z8f84o9w0h360cbqst6|
+|FUNCTION_ENABLED|`Boolean` Toggle for whether the function is actively enabled. Allows the Cloud Function to be disabled while still deployed.|1|
+|REDIRECT_URL|Authorization Callback URL provided during the GitHub OAuth App registration, i.e., <*Function Endpoint URL*>`/callback`|https://`project-url`.cloudfunctions.net/`function-name`/callback|
+|STATE_STORAGE_COLLECTION|[*Optional*] Path to the Firestore Collection designated for temporary state storage (see below).|`collection-name`/oauth_state_storage/states|
+|SSL_ENABLED|[*Local Only*] `Boolean` Toggles SSL during OAuth Authentication Flow. Should only be disabled during local development testing.|1|
 
 ### State Storage (Optional)
 For additional security, you may configure the component to utilize Google Cloud Firestore to temporarily store a user's state during their authentication session. The state is a random value passed between the OAuth Client (this component) and the OAuth Provider (GitHub) as a mechanism to protect against Cross-Site Request Forgery (CSRF) vulnerability.
