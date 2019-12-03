@@ -1,68 +1,84 @@
-# Netlify-cms-oauth-provider-python
+# Netlify CMS GitHub OAuth Provider on Google Cloud Functions
 
-[netlify-cms](https://www.netlifycms.org/) has its own github OAuth client. This is a python implementation based on the [Node.js](https://github.com/vencax/netlify-cms-github-oauth-provider) version.
+[Netlify CMS](https://www.netlifycms.org/) is an open source headless CMS that can be self-hosted, e.g., on GitHub Pages or S3, for little to no cost. When self-hosting, Netlify CMS requires an authentication backend to provide it with an authorized access token for a CMS user's GitHub account with access to the managed site's Git repository.
 
-Other implementations
-- [Go lang](https://github.com/igk1972/netlify-cms-oauth-provider-go)
-- [Node.js](https://github.com/vencax/netlify-cms-github-oauth-provider)
+**This component serves as the server-side OAuth Client to manage authentication with GitHub and provide the authenticated access token to Netlify CMS.**
 
-## 1) Install
+This version was based on the [Generic Python](https://github.com/davidejones/netlify-cms-oauth-provider-python) version and inspired by the [Google Apps Engine](https://github.com/signal-noise/netlify-cms-oauth-provider-python-appengine) version. It was rewritten to run as a single Google Cloud Function at ~zero-cost, with reduced authorized scope exposure, security enhancements for CSRF protection, and optional encrypted secret storage -- making it a good fit for community or open source driven projects.
 
-For mac and linux
-```
-git clone https://github.com/davidejones/netlify-cms-oauth-provider-python.git
-cd netlify-cms-oauth-provider-python
-python -m venv /path/to/new/virtual/environment
-source /path/to/new/virtual/environment/bin/activate
-pip install -r requirements.txt
-```
+It is written in **Python 3.7**.
 
-For windows
-```
-git clone https://github.com/davidejones/netlify-cms-oauth-provider-python.git
-cd netlify-cms-oauth-provider-python
-python -m venv /path/to/new/virtual/environment
-C:\path\to\new\virtual\environment\bin\activate.bat
-pip install -r requirements.txt
-```
+Other implementations can be found in the [Netlify CMS documentation](https://www.netlifycms.org/docs/authentication-backends/#external-oauth-clients).
 
-## 2) Config
+## Prerequisites
+Before installing, you should have the following setup and basic familiarity with the Google Cloud Platform:
+* [Google Cloud Platform (GCP)](https://cloud.google.com/) account and project
+* [Local Python 3 development environment for GCP](https://cloud.google.com/python/setup)
 
-### Auth Provider Config
+## **Setup Overview**
+Using the Cloud Function involves:
+1. Cloning this Git repository
+2. [Deploying it to a Google Cloud Function](https://cloud.google.com/functions/docs/deploying/), using any of the available methods (from your local machine, Source Control (requires you to Fork this Git repository), or the Cloud Console)
+3. Registering the OAuth App under your GitHub account
+4. Configuring the Function's environment variables
+5. Configuring your Netlify CMS instance
 
-Configuration is done with environment variables, which can be supplied as command line arguments, added in your app hosting interface, or loaded from a .env file.
+## Deployment
+Through this step, you will be simply creating a disabled, unconfigured Function on GCP.
 
-**Example .env file:**
+Deploying the component follows [the standard steps for deploying an HTTP triggered Google Cloud Function](https://cloud.google.com/functions/docs/deploying/).
 
-```
-OAUTH_CLIENT_ID=f432a9casdff1e4b79c57
-OAUTH_CLIENT_SECRET=pampadympapampadympapampadympa
-REDIRECT_URL=https://your.server.com/callback
-GIT_HOSTNAME=https://github.website.com
-SSL_ENABLED=1
-```
+You may use any of the available methods -- from your local machine, from Source Control (requires you to Fork this Git repository and setup as a mirrored Cloud Source Repository), or from the Cloud Console.
 
-**Client ID & Client Secret:**
-After registering your Oauth app, you will be able to get your client id and client secret on the next page.
+Take note of the Function's *Endpoint URL* for use in later steps.
 
-**Redirect URL (optional):**
-Include this if you  need your callback to be different from what is supplied in your Oauth app configuration.
+## GitHub OAuth App Registration
+In this step, you will register this component as an OAuth App under the appropriate GitHub account. 
 
-**Git Hostname (Optional):**
-This is only necessary for use with Github Enterprise.
+The OAuth App should be registered under the GitHub account with administrative privledges over the Git repository that Netlify CMS will be updating. For example, for a personal repository, you will register under your GitHub account. For an organization's repository, you will register under the organization, using a GitHub account with administrative access in the organization.
 
-### CMS Config
-You also need to add `base_url` to the backend section of your netlify-cms's config file. `base_url` is the live URL of this repo with no trailing slashes.
+With the appropriate GitHub account, follow these instructions, with these configuration guidelines:
+* **Homepage URL**:  <*Function Endpoint URL*>
+* **Authorization callback URL**:  <*Function Endpoint URL*>`/callback`
 
+Take note of the *Client ID* and *Client Secret* in a secure place.
+
+## Cloud Function Configuration
+
+Configuration is performed with environment variables, set during the Cloud Function's deployment or loaded from a .env file. It's recommended to only use a .env file for a local development environment to avoid exposing sensitive configuration variables in a repository.
+
+**List of Environment Variables**
+| Name                     | Description                                                                                                                              | Example Value                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| OAUTH_CLIENT_ID          | Provided by GitHub upon registering the Function as an OAuth App.                                                                        | f432a9casdff1e4b79c57                                             |
+| OAUTH_CLIENT_SECRET      | ~*Sensitive*~ Provided by GitHub upon registering the Function as an OAuth App. Should be considered equally sensitive as your password. | c0c6k8ew98m0kq4p85tf4z8f84o9w0h360cbqst6                          |
+| FUNCTION_ENABLED         | `Boolean` Toggle for whether the function is actively enabled. Allows the Cloud Function to be disabled while still deployed.            | 1                                                                 |
+| REDIRECT_URL             | Authorization Callback URL provided during the GitHub OAuth App registration, i.e., <*Function Endpoint URL*>`/callback`                 | https://`project-url`.cloudfunctions.net/`function-name`/callback |
+| STATE_STORAGE_COLLECTION | [*Optional*] Path to the Firestore Collection designated for temporary state storage (see below).                                        | `collection-name`/oauth_state_storage/states                      |
+| SSL_ENABLED              | [*Local Only*] `Boolean` Toggles SSL during OAuth Authentication Flow. Should only be disabled during local development testing.         | 1                                                                 |
+
+### State Storage (Optional)
+For additional security, you may configure the component to utilize Google Cloud Firestore to temporarily store a user's state during their authentication session. The state is a random value passed between the OAuth Client (this component) and the OAuth Provider (GitHub) as a mechanism to protect against Cross-Site Request Forgery (CSRF) vulnerability.
+
+⚠️ **This feature requires Firestore, which incurs cost!** For most purposes, the cost will be less than $1, as resource utilization is minimal, but it is non-zero and may increase if you have very high user traffic authenticating to Netlify CMS.
+
+To enable this feature, ensure you have an active Cloud Firestore instance (if not, see [Quickstart](https://cloud.google.com/firestore/docs/quickstart-servers)).
+
+Create a collection in your Firestore database as a designated workspace for the state to be stored. Please note states are only stored temporarily during the authentication flow and then deleted, so data will not accummulate there. The collection may be a sub-collection at any hierarchy.
+
+Configure the `STATE_STORAGE_COLLECTION` environment variable with the path to that collection.
+
+## Netlify CMS Configuration
+In this final step, you will configure Netlify CMS to use the Function as its authorization backend.
+
+In the Netlify CMS config file, use the following configuration:
 ```
 backend:
   name: github
-  repo: user/repo   # Path to your Github repository
-  branch: master    # Branch to update
-  base_url: https://your.server.com # Path to ext auth provider
+  repo: user/repo   # Path to your GitHub repository
+  branch: master    # Branch for Netlify CMS to create Pull Requests against
+  base_url: <Function Endpoint URL>   # URL to the Google Cloud Function OAuth Client
 ```
+Please note that `base_url` should not have trailing slashes.
 
-## 3) Run it
-With your virtual environment activated run the server as follows
-
-`python main.py`
+Your users should now be able to login to your self-hosted Netlify CMS with their GitHub credentials. ✨
