@@ -1,8 +1,8 @@
-# Netlify CMS GitHub OAuth Provider on Google Cloud Functions
+# Netlify CMS External GitHub OAuth Client on Google Cloud Functions
 
 [Netlify CMS](https://www.netlifycms.org/) is an open source headless CMS that can be self-hosted, e.g., on GitHub Pages or S3, for little to no cost. When self-hosting, Netlify CMS requires an authentication backend to provide it with an authorized access token for a CMS user's GitHub account with access to the managed site's Git repository.
 
-**This component serves as the server-side OAuth Client to manage authentication with GitHub and provide the authenticated access token to Netlify CMS.**
+**This component serves as the external server-side OAuth Client to manage authentication with GitHub and provide the authenticated access token to Netlify CMS.**
 
 This version was based on the [Generic Python](https://github.com/davidejones/netlify-cms-oauth-provider-python) version and inspired by the [Google Apps Engine](https://github.com/signal-noise/netlify-cms-oauth-provider-python-appengine) version. It was rewritten to run as a single Google Cloud Function at ~zero-cost, with reduced authorized scope exposure, security enhancements for CSRF protection, and optional encrypted secret storage -- making it a good fit for community or open source driven projects.
 
