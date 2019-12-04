@@ -52,7 +52,7 @@ Configuration is performed with environment variables, set during the Cloud Func
 |Name|Description|Example Value|
 |----|----|----|
 |OAUTH_CLIENT_ID|Provided by GitHub upon registering the Function as an OAuth App.|f432a9casdff1e4b79c57|
-|OAUTH_CLIENT_SECRET|~*Sensitive*~ Provided by GitHub upon registering the Function as an OAuth App. Should be considered equally sensitive as your password.|c0c6k8ew98m0kq4p85tf4z8f84o9w0h360cbqst6|
+|OAUTH_CLIENT_SECRET|[*Sensitive*] Provided by GitHub upon registering the Function as an OAuth App. Should be considered equally sensitive as your password.|c0c6k8ew98m0kq4p85tf4z8f84o9w0h360cbqst6|
 |FUNCTION_ENABLED|`Boolean` Toggle for whether the function is actively enabled. Allows the Cloud Function to be disabled while still deployed.|1|
 |REDIRECT_URL|Authorization Callback URL provided during the GitHub OAuth App registration, i.e., <*Function Endpoint URL*>`/callback`|https://`project-url`.cloudfunctions.net/`function-name`/callback|
 |STATE_STORAGE_COLLECTION|[*Optional*] Path to the Firestore Collection designated for temporary state storage (see below).|`collection-name`/oauth_state_storage/states|
