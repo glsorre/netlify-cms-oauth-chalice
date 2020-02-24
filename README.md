@@ -30,7 +30,12 @@ Deploying the component follows [the standard steps for deploying an HTTP trigge
 
 You may use any of the available methods -- from your local machine, from Source Control (requires you to Fork this Git repository and setup as a mirrored Cloud Source Repository), or from the Cloud Console.
 
-Take note of the Function's *Endpoint URL* for use in later steps.
+Take note of the Function's *Name* and *Endpoint URL* for use in later steps. This information may be found in the Cloud Console under the Cloud Function > Trigger section.
+
+The *Endpoint URL* should have the following format:  
+```
+https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/FUNCTION_NAME
+```
 
 ## GitHub OAuth App Registration
 In this step, you will register this component as an OAuth App under the appropriate GitHub account. 
@@ -72,14 +77,26 @@ Configure the `STATE_STORAGE_COLLECTION` environment variable with the path to t
 ## Netlify CMS Configuration
 In this final step, you will configure Netlify CMS to use the Function as its authorization backend.
 
-In the Netlify CMS config file, use the following configuration:
+In the Netlify CMS config file, apply the following configuration (`base_url` and `auth` are the specific configuration parameters related to the OAuth provider):
 ```
 backend:
   name: github
   repo: user/repo   # Path to your GitHub repository
   branch: master    # Branch for Netlify CMS to create Pull Requests against
-  base_url: <Function Endpoint URL>   # URL to the Google Cloud Function OAuth Client
+  base_url: <Function Endpoint Base URL>   # Base URL extracted from the Cloud Function Endpoint URL
+  auth: <Function Name>/auth
 ```
+
+You will extract parts of the Cloud Function's Endpoint URL into configuration settings in Netlify CMS. The *Endpoint URL* should have the following format:  
+```
+https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/FUNCTION_NAME
+```
+
+So, the configuration parameters should be something like:
+* `base_url: https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net`
+* `auth: FUNCTION_NAME/auth`
+
+
 Please note that `base_url` should not have trailing slashes.
 
 Your users should now be able to login to your self-hosted Netlify CMS with their GitHub credentials. ✨
