@@ -30,6 +30,13 @@ Deploying the component follows [the standard steps for deploying an HTTP trigge
 
 You may use any of the available methods -- from your local machine, from Source Control (requires you to Fork this Git repository and setup as a mirrored Cloud Source Repository), or from the Cloud Console.
 
+If deploying with the `gcloud` command line, here is an example command to use:
+```
+gcloud functions deploy FUNCTION_NAME --runtime=python37 --entry-point=cloud_run --set-env-vars=[OAUTH_CLIENT_ID=[YOUR ID],OAUTH_CLIENT_SECRET=[YOUR SECRET],FUNCTION_ENABLED=1,REDIRECT_URL=https://[YOUR APP].cloudfunctions.net/cloud_run/callback] --trigger-http
+```
+With the following arguments explained:
+* FUNCTION_NAME: Your choice of a name for the Cloud Function
+
 Take note of the Function's *Name* and *Endpoint URL* for use in later steps. This information may be found in the Cloud Console under the Cloud Function > Trigger section.
 
 The *Endpoint URL* should have the following format:  
@@ -50,7 +57,14 @@ Take note of the *Client ID* and *Client Secret* in a secure place.
 
 ## Cloud Function Configuration
 
-Configuration is performed with environment variables, set during the Cloud Function's deployment or loaded from a .env file. It's recommended to only use a .env file for a local development environment to avoid exposing sensitive configuration variables in a repository.
+Configuration is performed with environment variables, by redeploying the Cloud Function or loaded from a .env file. It's recommended to only use a .env file for a local development environment to avoid exposing sensitive configuration variables in a repository.
+
+You may either manage the Environment Variables through the Cloud Console (by editing the Cloud Function) or by re-deploying with the command line, both of which cause a redeployment.
+
+Here is an example `gcloud` deployment command, with the environment variables:
+```
+gcloud functions deploy FUNCTION_NAME --runtime=python37 --entry-point=cloud_run --set-env-vars=[OAUTH_CLIENT_ID=<YOUR-OAUTH-CLIENT-ID>,OAUTH_CLIENT_SECRET=<YOUR-OAUTH-CLIENT-SECRET>,FUNCTION_ENABLED=1,REDIRECT_URL=<YOUR-CLOUD-FUNCTION-ENDPOINT-URL>/callback] --trigger-http
+```
 
 **List of Environment Variables**
 
