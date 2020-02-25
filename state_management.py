@@ -2,7 +2,10 @@ from uuid import uuid4
 from google.cloud import firestore
 from os import environ
 
-STATE_STORAGE_COLLECTION = environ.get('STATE_STORAGE_COLLECTION', 'ffxiv_pg/oauth_state_storage/states')
+STATE_STORAGE_COLLECTION = environ.get('STATE_STORAGE_COLLECTION')
+
+def state_management_enabled():
+    return True if STATE_STORAGE_COLLECTION else False
 
 
 def save_state(state):
