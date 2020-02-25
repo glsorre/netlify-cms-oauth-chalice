@@ -41,9 +41,9 @@ def auth():
 
 
 def callback(request):
+    state = request.args.get('state', 'No_state')
     if state_management_enabled():
         # Check the state to protect against CSRF
-        state = request.args.get('state', 'No_state')
         if not validate_state(state):
             # This request may not have been started by us!
             return abort(403)
