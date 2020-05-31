@@ -103,3 +103,8 @@ ENV/
 # jetbrains
 .idea/
 .vscode/
+
+# aws chalice
+.chalice/deployments/
+.chalice/venv/
+.chalicelib/
