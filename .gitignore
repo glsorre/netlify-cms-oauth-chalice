@@ -105,7 +105,6 @@ ENV/
 .vscode/
 
 # aws chalice
-.chalice/
 chalicelib/
 
 #terraform
