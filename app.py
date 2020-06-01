@@ -17,14 +17,24 @@ app = Chalice(app_name="netlify-cms-oauth-chalice")
 
 def get_base_url(current_request):
     headers = current_request.headers
-    return '%s://%s' % (headers['x-forwarded-proto'],
-                        headers['host'])
+    return '%s://%s' % (headers['x-forwarded-proto'], headers['host'])
+
+def get_url(current_request):
+    headers = current_request.headers
+    url = '%s://%s' % (headers['x-forwarded-proto'], headers['host'])
+
+    url += "?"
+    
+    for k, v in app.current_request.query_params.items():
+        url += f"{k}={v}&"
+
+    return url
 
 @app.route("/")
 def index():
     return Response(
         status_code=200,
-        body=f'Hello<br><a href="{get_base_url(app.current_request)}/auth">Log in with Github</a>',
+        body=f'Hello<br><a href="{get_base_url(app.current_request)}/api/auth">Log in with Github</a>',
         headers={'Content-Type': 'text/html; charset=UTF-8'}
         )
 
@@ -33,17 +43,18 @@ def auth():
     github = OAuth2Session(client_id, scope=scope)
     authorization_url, server_state = github.authorization_url(authorization_base_url)
     return Response(
-        status_code=301,
+        status_code=302,
         body='',
         headers={'Location': authorization_url}
         )
 
 @app.route("/callback")
 def callback():
-    state = app.current_request.query_params.get('state', '')
+    authorization_response = get_url(app.current_request)
+
     try:
-        github = OAuth2Session(client_id, state=state, scope=scope)
-        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=get_base_url(app.current_request))
+        github = OAuth2Session(client_id, scope=scope)
+        token = github.fetch_token(token_url, client_secret=client_secret, authorization_response=authorization_response)
         content = json.dumps({'token': token.get('access_token', ''), 'provider': 'github'})
         message = 'success'
     except BaseException as e:
