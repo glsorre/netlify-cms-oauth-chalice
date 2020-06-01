@@ -105,6 +105,11 @@ ENV/
 .vscode/
 
 # aws chalice
-.chalice/deployments/
-.chalice/venv/
-.chalicelib/
+.chalice/
+chalicelib/
+
+#terraform
+terraform/.terraform/
+terraform/deployment.zip
+*.tfstate
+*.tfstate.backup
