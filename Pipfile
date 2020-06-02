@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 chalice = "*"
 requests-oauthlib = "*"
+bucketstore = "*"
 
 [requires]
 python_version = "3.8"
